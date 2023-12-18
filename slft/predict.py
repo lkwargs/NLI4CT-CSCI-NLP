@@ -70,7 +70,7 @@ def eval(pipeline: transformers.pipeline, tokenizer: AutoTokenizer):
                         top_k=3,
                         num_return_sequences=1,  # Return only the best answer
                         eos_token_id=tokenizer.eos_token_id,
-                        max_new_tokens=512,
+                        max_new_tokens=128,
                     )
             for answer in answers:
                 pred = handle_answer(answer['generated_text'])
@@ -102,6 +102,7 @@ def eval(pipeline: transformers.pipeline, tokenizer: AutoTokenizer):
 
 
 DATA_PATTERN = re.compile(r"(<s>\[INST\] <<SYS>>.*?\[/INST\])(.*?)\"(.*?)\"(.*</s>)", re.DOTALL)
+ANSWER_PATTERN = re.compile(r"<s>\[INST\] <<SYS>>(.*?)</s>", re.DOTALL)
 
 def handle_datapoint(datapoint: str):
     matchs = DATA_PATTERN.match(datapoint)
@@ -111,11 +112,12 @@ def handle_datapoint(datapoint: str):
 
 
 def handle_answer(answer: str):
+    matchs = DATA_PATTERN.match(answer)
+    if matchs:
+        answer = matchs.groups()[0]
     if '"Entailment"' in answer:
         predicate = "Entailment"
-    elif '"Contradiction"' in answer:
-        predicate = "Contradiction"
-    elif "contradict" in answer:
+    elif '"Contradiction"' in answer or "contradict" in answer:
         predicate = "Contradiction"
     else:
         predicate = None
@@ -125,6 +127,6 @@ def handle_answer(answer: str):
 
 if __name__ == '__main__':
     # datapoint = '<s>[INST] <<SYS>>\nYou are a helpful assistant. You are going to determine the inference relation (entailment or contradiction) between pairs of Clinical Trial Reports (CTRs) and the statements, making claims about one of the summarized sections of the CTRs: Results.<</SYS>>. This task type is "Single". There is only one CTR. The statement is "there is a 13.2% difference between the results from the two the primary trial cohorts". The primary CTR section includes,\n Outcome Measurement: \n  Event-free Survival\n  Event free survival, the primary endpoint of this study, is defined as the time from randomization to the time of documented locoregional or distant recurrence, new primary breast cancer, or death from any cause.\n  Time frame: 5 years\nResults 1: \n  Arm/Group Title: Exemestane\n  Arm/Group Description: Patients receive oral exemestane (25 mg) once daily for 5 years.\n  exemestane: Given orally\n  Overall Number of Participants Analyzed: 3789\n  Measure Type: Number\n  Unit of Measure: percentage of participants  88        (87 to 89)\nResults 2: \n  Arm/Group Title: Anastrozole\n  Arm/Group Description: Patients receive oral anastrozole (1 mg) once daily for 5 years.\n  anastrozole: Given orally\n  Overall Number of Participants Analyzed: 3787\n  Measure Type: Number\n  Unit of Measure: percentage of participants  89        (88 to 90)[/INST] Based on the provided evidence, \n I think the relationship is "Contradiction". The statement "there is a 13.2% difference between the results from the two the primary trial cohorts" is likely to be false. The primary CTR section includes the results of the two primary trial cohorts, which show a difference of 88% and 89% in the event-free survival rate, respectively. This suggests that there is a significant difference between the two cohorts in terms of event-free survival, which contradicts the statement.'
-    # print(handle_datapoint(datapoint))
-    pipeline, tokenizer = build_pipeline("/home/josep/rl/nli4ct/slft/output")
+    # print(handle_answer(datapoint))
+    pipeline, tokenizer = build_pipeline("/home/josep/rl/nli4ct/slft/output/checkpoint-400")
     eval(pipeline, tokenizer)
