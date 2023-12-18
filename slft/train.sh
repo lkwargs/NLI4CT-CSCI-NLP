@@ -1,0 +1,1 @@
+accelerate launch sft.py --model_name meta-llama/Llama-2-7b-chat-hf --load_in_8bit --use_peft --num_train_epochs 3 --seq_length 2048 --batch_size 2 --gradient_accumulation_steps 4
