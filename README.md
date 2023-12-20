@@ -1,6 +1,5 @@
 # Multi-evidence Natural Language Inference for Clinical Trial Data (NLI4CT)
-## Overleaf Link
-https://www.overleaf.com/6695663267kbxtxkhsjtwt#23edca
+## [Overleaf Link](https://www.overleaf.com/read/myrmspbntbvv#f69831)
 
 ## Supervised Finetune LLAMA-2 in Text Generation for Classification
 
